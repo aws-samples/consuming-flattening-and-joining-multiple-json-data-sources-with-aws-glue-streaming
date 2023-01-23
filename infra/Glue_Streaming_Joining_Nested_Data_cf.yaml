@@ -1,0 +1,200 @@
+Description: 'AWS CloudFormation Sample Template Glue_Streaming_Joining_Nested_Data: This template demonstrates
+  how to join nested JSON data from two kinesis data streams.
+
+  **WARNING** This template creates multiple AWS services. You will be billed for the AWS resources used if you create a stack from
+  this template.'
+
+Parameters:
+# The name of the job to be created
+  GlueJobName:
+    Type: String
+    Default: awsglue-streaming-join-nested-json
+  GlueDatabaseName:
+    Type: String
+    Default: awsglue-streaming-join-nested-json-db
+  RecommenderStreamName:
+    Type: String
+    Default: recommenderStream
+  NestedPurchaseStreamName:
+    Type: String
+    Default: nestedPurchaseStream
+
+
+Resources:
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: "LogDeliveryWrite"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      BucketName:
+        !Join
+          - '-'
+          - - 'glue-streaming-join-blog-bucket'
+            - !Ref AWS::AccountId
+
+  NestedPurchaseStream:
+    Type: 'AWS::Kinesis::Stream'
+    Properties:
+      Name: !Ref NestedPurchaseStreamName
+      RetentionPeriodHours: 24
+      ShardCount: 2
+
+  RecommenderStream:
+    Type: 'AWS::Kinesis::Stream'
+    Properties:
+      Name: !Ref RecommenderStreamName
+      RetentionPeriodHours: 24
+      ShardCount: 2
+
+  AwsGlueStreamingJoinNestedJsonJob:
+    Type: AWS::Glue::Job
+    Properties:
+      Name: !Ref GlueJobName
+      Command:
+        Name: glueetl
+        ScriptLocation:
+          !Join
+            - '/'
+            - - 's3:/'
+              - !Ref S3Bucket
+              - 'code/streaming_join_job.py'
+
+      Role: !Ref GlueServiceRole
+      MaxRetries: 1
+      Timeout: 2880
+      GlueVersion: 3.0
+      MaxCapacity: 5
+      DefaultArguments:
+          --TempDir:
+            !Join
+              - '/'
+              - - 's3:/'
+                - !Ref S3Bucket
+                - 'code/temporary/'
+          --class: "GlueApp"
+          --enable-auto-scaling: "true"
+          --enable-continuous-cloudwatch-log: "true"
+          --enable-glue-datacatalog: "true"
+          --enable-job-insights: "true"
+          --enable-metrics: "true"
+          --enable-spark-ui: "true"
+          --job-bookmark-option: "job-bookmark-disable"
+          --job-language: "python"
+          --output_path:
+            !Join
+              - '/'
+              - - 's3:/'
+                - !Ref S3Bucket
+          --spark-event-logs-path:
+            !Join
+              - '/'
+              - - 's3:/'
+                - !Ref S3Bucket
+                - 'code/sparkHistoryLogs/'
+
+  GlueCatalogDatabase:
+    Type: 'AWS::Glue::Database'
+    Properties:
+      CatalogId: !Ref AWS::AccountId
+      DatabaseInput:
+        Name: !Ref GlueDatabaseName
+        Description: Database created for defining schemas on the kinesis data streams
+
+  NestedPurchaseGlueTable:
+    Type: 'AWS::Glue::Table'
+    Properties:
+      CatalogId: !Ref AWS::AccountId
+      DatabaseName: !Ref GlueDatabaseName
+      TableInput:
+        Description: Table for purchase data
+        Name: nested-purchase-stream-table
+        TableType: EXTERNAL_TABLE
+        Parameters: { "classification": "json" }
+        StorageDescriptor:
+          Location: !Ref NestedPurchaseStreamName
+          Compressed: False
+          InputFormat: "org.apache.hadoop.mapred.TextInputFormat"
+          OutputFormat: "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat"
+          SerdeInfo:
+            SerializationLibrary: "org.openx.data.jsonserde.JsonSerDe"
+          Parameters:
+            typeOfData: "kinesis"
+            streamARN:
+              Fn::GetAtt:
+                - "NestedPurchaseStream"
+                - "Arn"
+          Columns:
+            - Name: "body"
+              Type: "struct<basket_items:array<struct<product:struct<sku:string,name:string,category:string,pricing:struct<price:double>,quantity_purchased:bigint>>>,transaction_id:string,purchase_time:string,user_id:string>"
+    DependsOn: [GlueCatalogDatabase, NestedPurchaseStream]
+
+  RecommenderResultGlueTable:
+    Type: 'AWS::Glue::Table'
+    Properties:
+      CatalogId: !Ref AWS::AccountId
+      DatabaseName: !Ref GlueDatabaseName
+      TableInput:
+        Description: Table for recommendations based on purchase of a product
+        Name: recommender-stream-table
+        TableType: EXTERNAL_TABLE
+        Parameters: { "classification": "json" }
+        StorageDescriptor:
+          Location: !Ref RecommenderStreamName
+          Compressed: False
+          InputFormat: "org.apache.hadoop.mapred.TextInputFormat"
+          OutputFormat: "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat"
+          SerdeInfo:
+            SerializationLibrary: "org.openx.data.jsonserde.JsonSerDe"
+          Parameters:
+            typeOfData: "kinesis"
+            streamARN:
+              Fn::GetAtt:
+               - "RecommenderStream"
+               - "Arn"
+          Columns:
+           - Name: "purchase_id"
+             Type: "string"
+           - Name: "next_best_product_sku"
+             Type: "string"
+           - Name: "likelihood_score"
+             Type: "bigint"
+           - Name: "purchase_time"
+             Type: "bigint"
+           - Name: "prediction_timestamp"
+             Type: "bigint"
+    DependsOn: [GlueCatalogDatabase, RecommenderStream]
+
+  GlueServiceRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+        Path: "/"
+        RoleName: "AWSGlueServiceRoleDefaultdemo"
+        AssumeRolePolicyDocument: "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"glue.amazonaws.com\"},\"Action\":\"sts:AssumeRole\"}]}"
+        MaxSessionDuration: 3600
+        Policies:
+          - PolicyName: GlueS3AccessPolicy
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action: ['s3:*','s3-object-lambda:*']
+                  Resource:
+                    - !Join
+                      - ''
+                      - - 'arn:aws:s3:::'
+                        - !Ref S3Bucket
+                        - /*
+        ManagedPolicyArns:
+          - "arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"
+          - "arn:aws:iam::aws:policy/AmazonKinesisReadOnlyAccess"
+        Description: "Allows Glue to call AWS services on your behalf. "
+
+    DependsOn: [S3Bucket]
+
+
+Outputs:
+  S3Bucket:
+    Value: !Ref S3Bucket
