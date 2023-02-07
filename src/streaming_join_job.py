@@ -31,8 +31,8 @@ logger = glueContext.get_logger()
 
 def process_batch(joined_df, batch_id):
 
-    logger.info(f" ========== number of joined records {joined_df.count()} ==============")
-    if joined_df.count() > 0:
+    if joined_df.schema != []:
+
         joined_gdf = DynamicFrame.fromDF(joined_df, glueContext, "from_data_frame")
 
         joined_gdf.printSchema()

@@ -27,7 +27,6 @@ def generate_products(fake, number_of_products=100):
 
 def generate_fake_purchase(fake, sold_products, purchase_timestamp):
 
-    # Scale to create multiple records
     purchase = {
         "body": {
             "purchase_time": purchase_timestamp,
@@ -171,7 +170,6 @@ def main(args):
 
 
 if __name__ == "__main__":
-    # run main
     parser = argparse.ArgumentParser(description='Faker based streaming data generator')
 
     parser.add_argument('--recommender_stream_name', action='store', dest='recommender_stream',
