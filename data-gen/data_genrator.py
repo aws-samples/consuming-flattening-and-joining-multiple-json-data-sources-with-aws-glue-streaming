@@ -10,11 +10,6 @@ from faker import *
 import faker_commerce
 
 
-# Create a client with aws service and region
-def create_client(service, region):
-    return boto3.client(service, region_name=region)
-
-
 def generate_products(fake, number_of_products=100):
     product_catalogue = []
     for product_number in range(1, number_of_products):
@@ -118,37 +113,39 @@ def get_purchase_records(fake, product_catalog, percent_late=20, lateness=5):
 
 def send_records_to_kinesis(kinesis_client, fake, product_catalog, job_parameters, fraud_service_delay=2, percent_late=33, lateness=5):
 
-    while True:
+    try:
+        while True:
 
-        fake_purchases, fake_recommendations = get_purchase_records(
-            fake, product_catalog, percent_late=percent_late, lateness=lateness)
+            fake_purchases, fake_recommendations = get_purchase_records(
+                fake, product_catalog, percent_late=percent_late, lateness=lateness)
 
-        print(f"\n\n----fake purchases [{len(fake_purchases)}]----")
-        print(fake_purchases)
+            print(f"\n\n----fake purchases [{len(fake_purchases)}]----")
+            print(fake_purchases)
 
-        product_write_response = kinesis_client.put_records(
-            StreamName=job_parameters.purchase_stream,
-            Records=fake_purchases
-        )
-        print(f"----fake product_write_response [{product_write_response}]----")
+            product_write_response = kinesis_client.put_records(
+                StreamName=job_parameters.purchase_stream,
+                Records=fake_purchases
+            )
+            print(f"----fake product_write_response [{product_write_response}]----")
 
-        if fraud_service_delay > 0:
-            time.sleep(float(fraud_service_delay))
+            if fraud_service_delay > 0:
+                time.sleep(float(fraud_service_delay))
 
-        print(f"\n\n----fake recommendation [{len(fake_recommendations)}]----")
-        print(fake_recommendations)
+            print(f"\n\n----fake recommendation [{len(fake_recommendations)}]----")
+            print(fake_recommendations)
 
-        recommendation_write_response = kinesis_client.put_records(
-            StreamName=job_parameters.recommender_stream,
-            Records=fake_recommendations
-        )
-        print(f"----fake recommendation_write_response [{recommendation_write_response}]----")
-
+            recommendation_write_response = kinesis_client.put_records(
+                StreamName=job_parameters.recommender_stream,
+                Records=fake_recommendations
+            )
+            print(f"----fake recommendation_write_response [{recommendation_write_response}]----")
+    except KeyboardInterrupt:
+        print('interrupted!')
 
 def main(args):
 
-    # print (args)
-    # Make sure to set your profile here
+    # Please set the AWS_ACCESS_KEY_ID, AWS_SESSION_TOKEN and AWS_SECRET_ACCESS_KEY as local environment variables
+    # in the console where you will run this script.
     session = boto3.Session(
         aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
         aws_session_token=os.environ["AWS_SESSION_TOKEN"],
@@ -160,13 +157,12 @@ def main(args):
         faker = Faker()
         faker.add_provider(faker_commerce.Provider)
 
-        # Kinesis settings
         kinesis_client = session.client('kinesis', args.region)
 
         # Generate 1000 different Users
         product_catalog = generate_products(faker, number_of_products=1000)
 
-        # Create fake stream of data and send it to kinesis streams
+        # Create fake stream of data and send it to the two kinesis streams
         send_records_to_kinesis(kinesis_client, faker, product_catalog, args)
 
     except:
@@ -178,11 +174,11 @@ if __name__ == "__main__":
     # run main
     parser = argparse.ArgumentParser(description='Faker based streaming data generator')
 
-    parser.add_argument('--recommenderstreamname', action='store', dest='recommender_stream',
+    parser.add_argument('--recommender_stream_name', action='store', dest='recommender_stream',
                         default='recommenderStream',
                         help='Provide Kinesis Data Stream name to recommender stream data')
 
-    parser.add_argument('--purchasestreamname', action='store', dest='purchase_stream',
+    parser.add_argument('--purchase_stream_name', action='store', dest='purchase_stream',
                         default='nestedPurchaseStream',
                         help='Provide Kinesis Data Stream name to purchase stream data')
 
