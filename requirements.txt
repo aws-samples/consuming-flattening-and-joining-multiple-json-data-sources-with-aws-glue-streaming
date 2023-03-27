@@ -1,0 +1,4 @@
+faker==15.3.4
+faker-commerce==1.0.3
+boto3==1.26.62
+numpy==1.24.2

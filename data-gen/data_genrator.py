@@ -60,7 +60,7 @@ def generate_prediction(purchase, percent_late, lateness, product_catalog):
         "purchase_id": purchase['body'].get('transaction_id'),
         "purchase_time": purchase['body'].get('purchase_time'),
         "likelihood_score": int(np.random.choice(np.arange(1, 11), p=[0.3, 0.2, 0.1, 0.1, 0.1, 0.1, 0.04, 0.03, 0.02, 0.01])),
-        "prediction_timestamp": late_timestamp,
+        "recommendation_processed_time": late_timestamp,
         "next_best_product_sku": next_best_product["sku"]
     }
 

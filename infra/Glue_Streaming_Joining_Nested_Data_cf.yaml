@@ -65,7 +65,7 @@ Resources:
       Role: !Ref GlueServiceRole
       MaxRetries: 1
       Timeout: 2880
-      GlueVersion: 3.0
+      GlueVersion: 4.0
       MaxCapacity: 5
       DefaultArguments:
           --TempDir:
@@ -163,7 +163,7 @@ Resources:
              Type: "bigint"
            - Name: "purchase_time"
              Type: "bigint"
-           - Name: "prediction_timestamp"
+           - Name: "recommendation_processed_time"
              Type: "bigint"
     DependsOn: [GlueCatalogDatabase, RecommenderStream]
 

@@ -65,24 +65,32 @@ def flatten_nested_purchase(nested_json_df: DataFrame) -> DataFrame:
 
     return output_df
 
-
+'''
+The JSON schema's is defined in the AWS Glue Data Catalog. Leveraging the below library retrieves the data from 
+the Kinesis Stream and applies the schema. See the cloudformation template for a closer look at the syntax required to
+define nested JSON schema's.
+'''
 nested_product_kinesis_df = glueContext.create_data_frame_from_catalog(
     database="awsglue-streaming-join-nested-json-db",
     table_name="nested-purchase-stream-table",
     transformation_ctx="nested_purchase_ds",
     additional_options={"startingPosition": "latest"}
 )
-
-flattened_products_df = flatten_nested_purchase(nested_product_kinesis_df)
-flattened_products_ts_df = flattened_products_df.withColumn("purchase_time", from_unixtime(col("purchase_time")).cast("timestamp"))
-flattened_products_with_watermark_df = flattened_products_ts_df.withWatermark("purchase_time", "10 minutes")
-
 recommendations_kinesis_df = glueContext.create_data_frame_from_catalog(
    database="awsglue-streaming-join-nested-json-db",
    table_name="recommender-stream-table",
    transformation_ctx="recommender_ds",
    additional_options={"startingPosition": "latest"}
 )
+
+
+flattened_products_df = flatten_nested_purchase(nested_product_kinesis_df)
+flattened_products_ts_df = flattened_products_df\
+    .withColumn("purchase_time", from_unixtime(col("purchase_time"))
+                .cast("timestamp"))
+
+flattened_products_with_watermark_df = flattened_products_ts_df.\
+    withWatermark("purchase_time", "10 minutes")
 
 recommendations_with_watermark_df = recommendations_kinesis_df\
     .withColumn("original_purchase_time", from_unixtime(col("purchase_time")).cast('timestamp'))\
@@ -96,7 +104,7 @@ flattened_products_with_recommendation_df = flattened_products_with_watermark_df
   expr("""
         transaction_id = purchase_id AND
         recommendation_processed_time >= purchase_time AND
-        recommendation_processed_time >= purchase_time + interval 30 SECONDS
+        recommendation_processed_time <= purchase_time + interval 30 SECONDS
     """), "inner"
 )
 
@@ -111,4 +119,3 @@ glueContext.forEachBatch(
 )
 
 job.commit()
-
