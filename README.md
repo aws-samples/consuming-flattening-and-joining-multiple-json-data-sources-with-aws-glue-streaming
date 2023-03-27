@@ -16,7 +16,7 @@ We also use Watermarks to manage the late arriving data. Finally, we write the d
 
 ### Deploy the CloudFormation Script
 
-To get started, navigate to the AWS CloudFormation console. Create a CloudFormation Stack with the template in the [infra folder](../infra/Glue_Streaming_Joining_Nested_Data_cf.yaml).
+To get started, navigate to the AWS CloudFormation console. Create a CloudFormation Stack with the template in the [infra folder](infra/Glue_Streaming_Joining_Nested_Data_cf.yaml).
 
 For more details on how to do this, please see the [CloudFormation documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-create-stack.html) describing how to create a stack in the console.
 
