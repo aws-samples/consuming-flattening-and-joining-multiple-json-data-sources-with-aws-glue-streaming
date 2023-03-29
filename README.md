@@ -3,7 +3,7 @@ This repo contains code that demonstrates how to leverage AWS Glue streaming cap
 from multiple data producers. For this solution, we will use Amazon Kinesis as a message bus, AWS Glue to process the data and Amazon S3 to store the results
 
 ## Solution Overview
-In this solution, we show you how build a server-less streaming job that joins two data sources together with AWS Glue Streaming via a [stream-stream join](https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html#stream-stream-joins). 
+In this solution, we show you how to build a serverless streaming job that joins two data sources together with AWS Glue Streaming via a [stream-stream join](https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html#stream-stream-joins). 
 In this stream job want to de-normalize all records and flattened data, then write it to S3. The following diagram illustrates our solution’s architecture.
 
 ![Alt text](docs/images/nested_joins_diagrams_architecture.jpg?raw=true "Title")
