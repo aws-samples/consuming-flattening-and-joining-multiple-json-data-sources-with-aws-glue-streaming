@@ -72,7 +72,7 @@ Resources:
       MaxRetries: 1
       Timeout: 2880
       GlueVersion: 4.0
-      MaxCapacity: 5
+      MaxCapacity: 2
       DefaultArguments:
           --TempDir:
             !Join
