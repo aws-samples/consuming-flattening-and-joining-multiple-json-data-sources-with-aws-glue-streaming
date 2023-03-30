@@ -20,6 +20,9 @@ To get started, navigate to the AWS CloudFormation console. Create a CloudFormat
 
 For more details on how to do this, please see the [CloudFormation documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-create-stack.html) describing how to create a stack in the console.
 
+### Upload the streaming job to S3
+Upload the [script](src/streaming_join_job.py) to your new s3 bucket s3://<YOUR-BUCKET-NAME>/code/.
+
 ### Configure the Python virtual environment
 This project is set up like a standard Python project. 
 The initialization process also creates a virtualenv within this project, 

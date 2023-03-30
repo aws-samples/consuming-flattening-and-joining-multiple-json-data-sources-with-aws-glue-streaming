@@ -110,7 +110,7 @@ def get_purchase_records(fake, product_catalog, percent_late=20, lateness=5):
     return purchases, predictions
 
 
-def send_records_to_kinesis(kinesis_client, fake, product_catalog, job_parameters, fraud_service_delay=2, percent_late=33, lateness=5):
+def send_records_to_kinesis(kinesis_client, fake, product_catalog, job_parameters, fraud_service_delay=2, percent_late=1, lateness=5):
 
     try:
         while True:
