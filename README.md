@@ -23,6 +23,10 @@ For more details on how to do this, please see the [CloudFormation documentation
 ### Upload the streaming job to S3
 Upload the [script](src/streaming_join_job.py) to your new s3 bucket s3://<YOUR-BUCKET-NAME>/code/.
 
+### Start the Glue streaming job.
+Navigate to the AWS Glue Console. Click on the Jobs
+
+
 ### Configure the Python virtual environment
 This project is set up like a standard Python project. 
 The initialization process also creates a virtualenv within this project, 
