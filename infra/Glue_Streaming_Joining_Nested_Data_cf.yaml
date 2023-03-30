@@ -60,7 +60,7 @@ Resources:
     Properties:
       Name: !Ref GlueJobName
       Command:
-        Name: glueetl
+        Name: gluestreaming
         ScriptLocation:
           !Join
             - '/'
@@ -72,7 +72,6 @@ Resources:
       MaxRetries: 1
       Timeout: 2880
       GlueVersion: 4.0
-      Type: Streaming
       MaxCapacity: 5
       DefaultArguments:
           --TempDir:
