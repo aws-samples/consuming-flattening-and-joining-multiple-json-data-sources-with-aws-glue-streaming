@@ -93,9 +93,8 @@ flattened_products_with_watermark_df = flattened_products_ts_df.\
     withWatermark("purchase_time", "10 minutes")
 
 recommendations_with_watermark_df = recommendations_kinesis_df\
-    .withColumn("original_purchase_time", from_unixtime(col("purchase_time")).cast('timestamp'))\
-    .withWatermark("original_purchase_time", "30 seconds")\
-    .withColumn("recommendation_processed_time", current_timestamp())\
+    .withColumn("recommendation_processed_time", from_unixtime(col("recommendation_processed_time")).cast('timestamp'))\
+    .withWatermark("recommendation_processed_time", "30 seconds")\
     .drop(col("purchase_time"))
 
 

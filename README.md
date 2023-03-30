@@ -24,7 +24,9 @@ For more details on how to do this, please see the [CloudFormation documentation
 Upload the [script](src/streaming_join_job.py) to your new s3 bucket s3://*YOUR-BUCKET-NAME*/code/.
 
 ### Start the Glue streaming job.
-On the AWS Glue console, choose ETL Jobs in the navigation pane. You will see the "awsglue-streaming-join-nested-json" job in the "Your Jobs" section of the console. 
+1. On the AWS Glue console, choose ETL Jobs in the navigation pane.
+2. In the "Your Jobs" section and choose the "awsglue-streaming-join-nested-json". 
+3. In the top right corner, choose the "Run" button.
 
 
 ### Configure the Python virtual environment
@@ -57,6 +59,15 @@ Once the virtualenv is activated, you can install the required dependencies.
 ### Run the data generation script
 The solution comes with a Python script to generate the two data sources. 
 Make sure you have [set up the boto3 credentials](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html) correctly. Then in the terminal, navigate to the data-gen folder of the code repo and run the script like below:
+
+
+### Clean Up
+#### Stop the Streaming Job
+Streaming jobs will run continuously until you stop them. Navigate back to the Glue job in the console, click on the "Runs" Tab.
+In the recent job runs, the latest job running will have a "Stop job run" button.
+
+#### Infrastructure Clean Up
+To avoid incurring future charges, delete the resources. You can do this by [deleting the CloudFormation stack](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-delete-stack.html) in the console.
 
 ```
 # Script for generating the data

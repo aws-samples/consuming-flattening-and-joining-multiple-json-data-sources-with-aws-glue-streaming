@@ -180,7 +180,7 @@ if __name__ == "__main__":
                         default='nestedPurchaseStream',
                         help='Provide Kinesis Data Stream name to purchase stream data')
 
-    parser.add_argument('--region', action='store', dest='region', default='ap-southeast-2')
+    parser.add_argument('--region', action='store', dest='region')
 
     args = parser.parse_args()
 
