@@ -21,10 +21,10 @@ To get started, navigate to the AWS CloudFormation console. Create a CloudFormat
 For more details on how to do this, please see the [CloudFormation documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-create-stack.html) describing how to create a stack in the console.
 
 ### Upload the streaming job to S3
-Upload the [script](src/streaming_join_job.py) to your new s3 bucket s3://<YOUR-BUCKET-NAME>/code/.
+Upload the [script](src/streaming_join_job.py) to your new s3 bucket s3://*YOUR-BUCKET-NAME*/code/.
 
 ### Start the Glue streaming job.
-Navigate to the AWS Glue Console. Click on the Jobs
+On the AWS Glue console, choose ETL Jobs in the navigation pane. You will see the "awsglue-streaming-join-nested-json" job in the "Your Jobs" section of the console. 
 
 
 ### Configure the Python virtual environment

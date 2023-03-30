@@ -11,7 +11,7 @@ Parameters:
     Default: glue-streaming-join-blog-bucket
   GlueServiceRoleName:
     Type: String
-    Default: AWSGlueServiceRoleDefaultdemo
+    Default: GlueStreamingDemoServiceRole
   GlueJobName:
     Type: String
     Default: awsglue-streaming-join-nested-json
@@ -177,7 +177,7 @@ Resources:
     Type: "AWS::IAM::Role"
     Properties:
         Path: "/"
-        RoleName: !Ref GlueStreamingDemoServiceRole
+        RoleName: !Ref GlueServiceRoleName
         AssumeRolePolicyDocument: "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"glue.amazonaws.com\"},\"Action\":\"sts:AssumeRole\"}]}"
         MaxSessionDuration: 3600
         Policies:
