@@ -56,7 +56,7 @@ Make sure you have [set up the boto3 credentials](https://boto3.amazonaws.com/v1
 
 ```
 # Script for generating the data
-python3 data_genrator.py --purchase_stream_name nestedPurchaseStream --recommender_stream_name recommenderStream --region ap-southeast-2
+python3 data_generator.py --purchase_stream_name nestedPurchaseStream --recommender_stream_name recommenderStream --region ap-southeast-2
 ```
 
 ## License
