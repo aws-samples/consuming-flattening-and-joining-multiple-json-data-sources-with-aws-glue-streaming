@@ -196,9 +196,79 @@ Resources:
         ManagedPolicyArns:
           - "arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"
           - "arn:aws:iam::aws:policy/AmazonKinesisReadOnlyAccess"
-        Description: "Allows Glue to call AWS services on your behalf. "
+        Description: "Allows Glue to call AWS services on your behalf."
 
     DependsOn: [S3Bucket]
+
+  IAMPolicy2:
+    Type: "AWS::IAM::Policy"
+    Properties:
+      PolicyDocument: !Sub |
+        {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Sid": "VisualEditor0",
+                    "Effect": "Allow",
+                    "Action": [
+                        "dynamodb:DeleteItem",
+                        "dynamodb:DescribeTable",
+                        "dynamodb:GetItem",
+                        "dynamodb:DescribeKinesisStreamingDestination",
+                        "dynamodb:BatchGetItem",
+                        "dynamodb:DisableKinesisStreamingDestination",
+                        "dynamodb:BatchWriteItem",
+                        "dynamodb:ConditionCheckItem",
+                        "dynamodb:PutItem",
+                        "dynamodb:PartiQLUpdate",
+                        "dynamodb:Scan",
+                        "dynamodb:Query",
+                        "dynamodb:UpdateItem",
+                        "dynamodb:DescribeTimeToLive",
+                        "dynamodb:GetShardIterator",
+                        "dynamodb:UpdateTable",
+                        "dynamodb:GetRecords",
+                        "dynamodb:DescribeReservedCapacityOfferings",
+                        "dynamodb:ListTables",
+                        "dynamodb:DescribeLimits"
+                    ],
+                    "Resource": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBTable}"
+                }
+            ]
+        }
+      Roles:
+        - !Ref GlueServiceRole
+      PolicyName: "accessdynamotblpolicy0v8glq"
+
+  DynamoDBTable:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "ddb_partition"
+          AttributeType: "S"
+      BillingMode: "PAY_PER_REQUEST"
+      TableName: "enriched_purchases"
+      KeySchema:
+        - AttributeName: "ddb_partition"
+          KeyType: "HASH"
+
+  GlueCrawlerEnriched:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: "EnrichedRecommendationCrawler"
+      Role: !GetAtt GlueServiceRole.Arn
+      DatabaseName: !Ref GlueCatalogDatabase
+      Targets:
+        S3Targets:
+          - Path: !Join ["", ["s3://", !Ref S3Bucket, "/", !Ref GlueJobName, "/data/enriched_recommendations/"]]
+      SchemaChangePolicy:
+        UpdateBehavior: "UPDATE_IN_DATABASE"
+        DeleteBehavior: "LOG"
+      Tags:
+        "Key1": "EnrichedCrawler"
+      Schedule:
+        ScheduleExpression: "cron(0/10 * ? * MON-SUN *)"
+
 
 
 Outputs:

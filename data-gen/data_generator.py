@@ -110,7 +110,7 @@ def get_purchase_records(fake, product_catalog, percent_late=20, lateness=5):
     return purchases, predictions
 
 
-def send_records_to_kinesis(kinesis_client, fake, product_catalog, job_parameters, fraud_service_delay=2, percent_late=1, lateness=5):
+def send_records_to_kinesis(kinesis_client, fake, product_catalog, job_parameters, recommendation_service_delay=0.5, percent_late=1, lateness=5):
 
     try:
         while True:
@@ -127,8 +127,8 @@ def send_records_to_kinesis(kinesis_client, fake, product_catalog, job_parameter
             )
             print(f"----fake product_write_response [{product_write_response}]----")
 
-            if fraud_service_delay > 0:
-                time.sleep(float(fraud_service_delay))
+            if recommendation_service_delay > 0:
+                time.sleep(float(recommendation_service_delay))
 
             print(f"\n\n----fake recommendation [{len(fake_recommendations)}]----")
             print(fake_recommendations)

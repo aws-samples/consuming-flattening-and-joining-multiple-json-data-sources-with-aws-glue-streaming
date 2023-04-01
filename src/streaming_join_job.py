@@ -5,7 +5,7 @@ from awsglue.context import GlueContext
 from awsglue.job import Job
 from awsglue.dynamicframe import DynamicFrame
 from pyspark.context import SparkContext
-from pyspark.sql.functions import explode, col, expr, from_unixtime, current_timestamp
+from pyspark.sql.functions import explode, col, expr, from_unixtime, current_timestamp, concat
 from pyspark.sql import DataFrame
 import datetime
 
@@ -17,7 +17,6 @@ args = getResolvedOptions(sys.argv,
 job_name = args['JOB_NAME']
 output_path = args['output_path']
 checkpoint_location = output_path + "/" + job_name + "/checkpointing"
-s3_target = output_path  + "/" + job_name  +  "/data/enriched_recommendations"
 
 sc = SparkContext.getOrCreate()
 
@@ -33,26 +32,23 @@ def process_batch(joined_df, batch_id):
 
     if joined_df.schema != []:
 
-        joined_gdf = DynamicFrame.fromDF(joined_df, glueContext, "from_data_frame")
+        joined_with_partition_df = joined_df.\
+            withColumn("ddb_partition", concat(col("purchase_time"), col("transaction_id"), col("sku"), col("user_id")))
+        joined_gdf = DynamicFrame.fromDF(joined_with_partition_df, glueContext, "from_data_frame")
 
         joined_gdf.printSchema()
-        joined_df.show(vertical=True, truncate=False)
+        joined_with_partition_df.show(vertical=True, truncate=False)
 
-        now = datetime.datetime.now()
-        s3path = s3_target + "/ingest_year=" + "{:0>4}".format(str(now.year)) \
-                 + "/ingest_month=" + "{:0>2}".format(str(now.month)) \
-                 + "/ingest_day=" + "{:0>2}".format(str(now.day)) \
-                 + "/ingest_hour=" + "{:0>2}".format(str(now.hour)) \
-                 + "/ingest_minute=" + "{:0>2}".format(str(now.minute)) + "/"
-
-        s3sink = glueContext.write_dynamic_frame.from_options(
-            frame=joined_gdf,
-            connection_type="s3",
-            connection_options={"path": s3path},
-            format = "parquet",
-            transformation_ctx="s3sink"
+        dynamodb_sink = glueContext.write_dynamic_frame_from_options(
+                frame=joined_gdf,
+                connection_type="dynamodb",
+                connection_options={
+                    "dynamodb.output.tableName": "enriched_purchases",
+                    "dynamodb.throughput.write.percent": "1.0"
+                }
         )
-        logger.info(f" ========== Batch [{batch_id}] Write Results {s3sink} ==============")
+
+        logger.info(f" ========== Batch [{batch_id}] Write Results {dynamodb_sink} ==============")
 
 
 def flatten_nested_purchase(nested_json_df: DataFrame) -> DataFrame:
