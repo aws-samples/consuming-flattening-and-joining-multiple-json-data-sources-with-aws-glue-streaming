@@ -200,7 +200,7 @@ Resources:
 
     DependsOn: [S3Bucket]
 
-  IAMPolicy2:
+  IAMPolicyDynamoDBTable:
     Type: "AWS::IAM::Policy"
     Properties:
       PolicyDocument: !Sub |
@@ -251,24 +251,6 @@ Resources:
       KeySchema:
         - AttributeName: "ddb_partition"
           KeyType: "HASH"
-
-  GlueCrawlerEnriched:
-    Type: AWS::Glue::Crawler
-    Properties:
-      Name: "EnrichedRecommendationCrawler"
-      Role: !GetAtt GlueServiceRole.Arn
-      DatabaseName: !Ref GlueCatalogDatabase
-      Targets:
-        S3Targets:
-          - Path: !Join ["", ["s3://", !Ref S3Bucket, "/", !Ref GlueJobName, "/data/enriched_recommendations/"]]
-      SchemaChangePolicy:
-        UpdateBehavior: "UPDATE_IN_DATABASE"
-        DeleteBehavior: "LOG"
-      Tags:
-        "Key1": "EnrichedCrawler"
-      Schedule:
-        ScheduleExpression: "cron(0/10 * ? * MON-SUN *)"
-
 
 
 Outputs:
