@@ -11,6 +11,8 @@ Next, an AWS Glue Streaming job reads the records from each data stream and join
 With the Glue Streaming job we use native PySpark functions to flatten the nested JSON and join the streaming DataFrames. 
 We also use Watermarks to manage the late arriving data. Finally, we write the data to an Amazon DynamoDB sink.
 
+## Deployment
+
 ### Deploy the CloudFormation Script
 
 To get started, navigate to the AWS CloudFormation console. Create a CloudFormation Stack with the template in the [infra folder](https://github.com/aws-samples/consuming-flattening-and-joining-multiple-json-data-sources-with-aws-glue-streaming/tree/main/infra).
