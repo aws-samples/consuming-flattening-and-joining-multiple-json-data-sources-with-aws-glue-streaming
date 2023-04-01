@@ -17,7 +17,7 @@ args = getResolvedOptions(sys.argv,
 job_name = args['JOB_NAME']
 output_path = args['output_path']
 checkpoint_location = output_path + "/" + job_name + "/checkpointing"
-s3_target = output_path  + "/" + job_name  +  "/dataOutput"
+s3_target = output_path  + "/" + job_name  +  "/data/enriched_recommendations"
 
 sc = SparkContext.getOrCreate()
 
